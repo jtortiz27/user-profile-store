@@ -31,7 +31,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<User> createUser(String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
-        userRepository.findUserModelsByEmailAddress(pointsOfContact.getEmailAddresses().get(0).getEmail());
+        return userRepository.findUserModelByEmailAddress(pointsOfContact.getEmailAddresses().get(0).getEmail())
+                .map(User::new);
+    }
+
+    @Override
+    public Mono<User> updateUser() {
         return Mono.empty();
     }
 
