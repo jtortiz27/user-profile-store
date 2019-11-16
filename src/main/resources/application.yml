@@ -1,0 +1,6 @@
+spring:
+  couchbase:
+    bootstrap-hosts: http://localhost
+    bucket:
+      name: users
+      password: password
