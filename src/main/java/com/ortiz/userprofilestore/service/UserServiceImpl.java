@@ -1,6 +1,7 @@
 package com.ortiz.userprofilestore.service;
 
 import com.ortiz.userprofilestore.data.model.Role;
+import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
 import com.ortiz.userprofilestore.service.model.User;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<User> createUser(String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
         return userRepository.findUserModelByEmailAddress(pointsOfContact.getEmailAddresses().get(0).getEmail())
+                .switchIfEmpty(userRepository.save(new UserModel(firstName, lastName, roles, pointsOfContact)))
                 .map(User::new);
     }
 

@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.couchbase.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Document
 @Data
@@ -21,6 +24,37 @@ public class UserModel {
     private String docType;
     private String firstName;
     private String lastName;
-    private List<Role> roles;
+    private List<Role> roles = new ArrayList<>();
     private PointsOfContact pointsOfContact;
+
+    public UserModel(String firstName, String lastName) {
+        this.id = UUID.randomUUID().toString();
+        this.docType = "user";
+        this.firstName = firstName;
+        this.roles = getDefaultRoles();
+        this.pointsOfContact = new PointsOfContact();
+    }
+
+    public UserModel(String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
+        this.id = UUID.randomUUID().toString();
+        this.docType = "user";
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.roles = roles;
+        this.pointsOfContact = pointsOfContact;
+    }
+
+    public UserModel(String firstName, String lastName, Role role, PointsOfContact pointsOfContact) {
+        this.id = UUID.randomUUID().toString();
+        this.docType = "user";
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.roles.add(role);
+        this.pointsOfContact = pointsOfContact;
+    }
+
+    private static List<Role> getDefaultRoles() {
+        return Arrays.asList(Role.MEMBER);
+    }
+
 }
