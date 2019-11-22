@@ -9,6 +9,9 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface UserRepository extends ReactiveCouchbaseSortingRepository<UserModel, String> {
 
-    @Query("SELECT * FROM users WHERE docType = 'user' and any email in pointsOfContact.emailAddresses.email satisfies $1")
-    Mono<UserModel> findUserModelsByEmailAddress(String emailAddress);
+    @Query("SELECT * FROM users WHERE docType = 'user' AND ANY email IN pointsOfContact.emailAddresses.email SATISFIES $1 end")
+    Mono<UserModel> findUserModelByEmailAddress(String emailAddress);
+
+    @Query("SELECT * FROM users WHERE docType = 'user' AND ANY number IN pointsOfContact.phoneNumbers.number SATISFIES $1 end")
+    Mono<UserModel> findUserModelByPhoneNumber(String phoneNumber);
 }

@@ -4,3 +4,11 @@ spring:
     bucket:
       name: users
       password: password
+  security:
+    basic:
+      enable: ignore
+    ignored: /**
+  jackson:
+    default-property-inclusion: NON_NULL
+  main:
+    allow-bean-definition-overriding: true

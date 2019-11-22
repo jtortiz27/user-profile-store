@@ -6,16 +6,14 @@ import com.ortiz.userprofilestore.service.model.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 public interface UserService {
 
     Flux<User> retrieveAllUsers();
 
     Mono<User> retrieveUserById(String id);
 
-    Mono<User> createUser(String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact);
+    Mono<User> createUser(String userName, String password, String firstName, String lastName, Role role, PointsOfContact pointsOfContact);
 
-    Mono<User> updateUser();
+    Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact);
 
 }

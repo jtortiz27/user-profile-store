@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PointsOfContact {
-    private List<EmailAddress> emailAddresses;
-    private List<PhysicalAddress> physicalAddresses;
-    private List<PhoneNumber> phoneNumbers;
+    private Set<EmailAddress> emailAddresses = new HashSet<>();
+    private Set<PhysicalAddress> physicalAddresses = new HashSet<>();
+    private Set<PhoneNumber> phoneNumbers = new HashSet<>();
 }

@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class User {
     private String id;
+    private String userName;
     private String firstName;
     private String lastName;
     private List<Role> roles;
@@ -20,6 +21,7 @@ public class User {
 
     public User(UserModel userModel) {
         this.id = userModel.getId();
+        this.userName = userModel.getUserName();
         this.firstName = userModel.getFirstName();
         this.lastName = userModel.getLastName();
         this.roles = userModel.getRoles();

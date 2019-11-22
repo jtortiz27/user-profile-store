@@ -1,5 +1,6 @@
 package com.ortiz.userprofilestore.config;
 
+import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,12 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.couchbase.config.AbstractCouchbaseConfiguration;
+import org.springframework.data.couchbase.config.AbstractReactiveCouchbaseConfiguration;
+import org.springframework.data.couchbase.repository.config.EnableReactiveCouchbaseRepositories;
 
 import java.util.List;
 
 @ConfigurationProperties
-public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
+@EnableReactiveCouchbaseRepositories
+public class CouchbaseConfig extends AbstractReactiveCouchbaseConfiguration {
 
     @Autowired
     private CouchbaseProperties couchbaseProperties;
@@ -55,5 +58,10 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
                 .queryTimeout(0)
                 .sslEnabled(true)
                 .build();
+    }
+
+    @Bean
+    Bucket bucket() throws Exception {
+        return couchbaseCluster().openBucket(getBucketName());
     }
 }
