@@ -20,6 +20,8 @@ import java.util.UUID;
 public class UserModel {
     @Id
     @Field
+    private String userName;
+    private String password;
     private String id;
     private String docType;
     private String firstName;
@@ -27,16 +29,20 @@ public class UserModel {
     private List<Role> roles = new ArrayList<>();
     private PointsOfContact pointsOfContact;
 
-    public UserModel(String firstName, String lastName) {
+    public UserModel(String userName, String encodedPassword, String firstName, String lastName) {
         this.id = UUID.randomUUID().toString();
+        this.userName = userName;
+        this.password = encodedPassword;
         this.docType = "user";
         this.firstName = firstName;
         this.roles = getDefaultRoles();
         this.pointsOfContact = new PointsOfContact();
     }
 
-    public UserModel(String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
+    public UserModel(String userName, String encodedPassword, String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
         this.id = UUID.randomUUID().toString();
+        this.userName = userName;
+        this.password = encodedPassword;
         this.docType = "user";
         this.firstName = firstName;
         this.lastName = lastName;
@@ -44,8 +50,10 @@ public class UserModel {
         this.pointsOfContact = pointsOfContact;
     }
 
-    public UserModel(String firstName, String lastName, Role role, PointsOfContact pointsOfContact) {
+    public UserModel(String userName, String encodedPassword, String firstName, String lastName, Role role, PointsOfContact pointsOfContact) {
         this.id = UUID.randomUUID().toString();
+        this.userName = userName;
+        this.password = encodedPassword;
         this.docType = "user";
         this.firstName = firstName;
         this.lastName = lastName;

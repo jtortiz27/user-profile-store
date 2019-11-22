@@ -1,16 +1,14 @@
 package com.ortiz.userprofilestore.api.controller;
 
 import com.ortiz.userprofilestore.api.model.UserResource;
-import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.service.UserService;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -19,7 +17,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    public UserController (UserService userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -37,28 +35,31 @@ public class UserController {
 
     @PostMapping
     public Mono<UserResource> createUser(@RequestBody UserResource userResource) {
-        String firstName = userResource.getFirstName();
-        String lastName = userResource.getLastName();
-        List<Role> roles = userResource.getRoles();
-        PointsOfContact pointsOfContact = userResource.getPointsOfContact();
-
-        if (StringUtils.isEmpty(firstName) || StringUtils.isEmpty(lastName) || StringUtils.isEmpty(roles) || pointsOfContact == null || pointsOfContact.getEmailAddresses().isEmpty()) {
+        if (!isUserResourceWithAllRequiredFields(userResource)) {
             return Mono.error(new IllegalArgumentException("Must supply all required fields"));
         }
 
-        return userService.createUser(firstName, lastName, roles, pointsOfContact)
+        return userService.createUser(userResource.getUserName(), userResource.getPassword(), userResource.getFirstName(), userResource.getLastName(), userResource.getRoles().get(0), userResource.getPointsOfContact())
                 .map(UserResource::new);
 
     }
 
-    @PatchMapping(value = "/{id}")
-    public Mono<UserResource> updateUser(@PathVariable("id") String id, @RequestBody UserResource userResource) {
-        String firstName = userResource.getFirstName();
-        String lastName = userResource.getLastName();
-        List<Role> roles = userResource.getRoles();
+    @PatchMapping(value = "/{userName}")
+    public Mono<UserResource> updateUser(@PathVariable("userName") String userName, @RequestBody UserResource userResource) {
         PointsOfContact pointsOfContact = userResource.getPointsOfContact();
-        return userService.updateUser()
+
+        return userService.updateUserPointsOfContact(userName, pointsOfContact)
                 .map(UserResource::new);
+
+    }
+
+    private static boolean isUserResourceWithAllRequiredFields(UserResource userResource) {
+        return !StringUtils.isEmpty(userResource.getUserName())
+                && !StringUtils.isEmpty(userResource.getPassword())
+                && !StringUtils.isEmpty(userResource.getFirstName())
+                && !StringUtils.isEmpty(userResource.getLastName())
+                && !CollectionUtils.isEmpty(userResource.getRoles())
+                && !CollectionUtils.isEmpty(userResource.getPointsOfContact().getEmailAddresses());
 
     }
 }

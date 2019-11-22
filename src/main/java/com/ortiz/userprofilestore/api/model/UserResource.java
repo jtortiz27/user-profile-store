@@ -14,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class UserResource {
     private String id;
+    private String userName;
+    private String password;
     private String firstName;
     private String lastName;
     private List<Role> roles;
