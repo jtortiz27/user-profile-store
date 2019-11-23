@@ -27,9 +27,9 @@ public class UserController {
                 .map(UserResource::new);
     }
 
-    @GetMapping(value = "/{id}")
-    public Mono<UserResource> retrieveUser(@PathVariable("id") String id) {
-        return userService.retrieveUserById(id)
+    @GetMapping(value = "/{userName}")
+    public Mono<UserResource> retrieveUser(@PathVariable("userName") String userName) {
+        return userService.retrieveUserByUserName(userName)
                 .map(UserResource::new);
     }
 

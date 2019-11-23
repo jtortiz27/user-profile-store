@@ -36,8 +36,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> retrieveUserById(String id) {
-        return userRepository.findById(id)
+    public Mono<User> retrieveUserByUserName(String userName) {
+        return userRepository.findById(userName)
                 .map(User::new);
     }
 
@@ -81,16 +81,19 @@ public class UserServiceImpl implements UserService {
             }).block();
         }).block();
 
-        return userRepository.findById(userName)
-                .map(userModel -> {
-                    userModel.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
-                    userModel.getPointsOfContact().getPhoneNumbers().addAll(pointsOfContact.getPhoneNumbers());
-                    userModel.getPointsOfContact().getPhysicalAddresses().addAll(pointsOfContact.getPhysicalAddresses());
-                    return userRepository.save(userModel)
-                            .switchIfEmpty(Mono.error(DocumentDoesNotExistException::new))
-                            .block();
-                })
-                .map(User::new);
+        if (valid) {
+            return userRepository.findById(userName)
+                    .map(userModel -> {
+                        userModel.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
+                        userModel.getPointsOfContact().getPhoneNumbers().addAll(pointsOfContact.getPhoneNumbers());
+                        userModel.getPointsOfContact().getPhysicalAddresses().addAll(pointsOfContact.getPhysicalAddresses());
+                        return userRepository.save(userModel)
+                                .switchIfEmpty(Mono.error(DocumentDoesNotExistException::new))
+                                .block();
+                    })
+                    .map(User::new);
+        }
+        return Mono.error(new IllegalArgumentException("Please enter unique email addresses and phone numbers"));
     }
 
     private Mono<Boolean> isUniqueEmailAddress(String emailAddress) {

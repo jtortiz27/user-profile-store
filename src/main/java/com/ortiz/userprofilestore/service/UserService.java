@@ -10,7 +10,7 @@ public interface UserService {
 
     Flux<User> retrieveAllUsers();
 
-    Mono<User> retrieveUserById(String id);
+    Mono<User> retrieveUserByUserName(String userName);
 
     Mono<User> createUser(String userName, String password, String firstName, String lastName, Role role, PointsOfContact pointsOfContact);
 
