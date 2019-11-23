@@ -56,6 +56,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact) {
+        Boolean userExists = userRepository.existsById(userName).block();
+
+        if (userExists != null && !userExists) {
+            return Mono.error(new IllegalArgumentException("Error retrieving user to update"));
+        }
 
         //Collect Email Addresses
         Mono<Set<String>> emailAddressMono = Mono.just(pointsOfContact.getEmailAddresses().stream()
@@ -70,10 +75,10 @@ public class UserServiceImpl implements UserService {
         Boolean valid = Mono.zip(emailAddressMono, phoneNumberMono, (emailAddresses, phoneNumbers) -> {
             Mono<Boolean> usersExistWithEmail = Flux.fromIterable(emailAddresses)
                     .flatMap(this::isUniqueEmailAddress)
-                    .any(Boolean::booleanValue);
+                    .all(Boolean::booleanValue);
             Mono<Boolean> usersExistWithPhoneNumber = Flux.fromIterable(phoneNumbers)
                     .flatMap(this::isUniquePhoneNumber)
-                    .any(Boolean::booleanValue);
+                    .all(Boolean::booleanValue);
 
             //Wait for both to finish
             return usersExistWithEmail.zipWith(usersExistWithPhoneNumber, (T1, T2) -> {
@@ -81,7 +86,7 @@ public class UserServiceImpl implements UserService {
             }).block();
         }).block();
 
-        if (valid) {
+        if (valid != null && valid) {
             return userRepository.findById(userName)
                     .map(userModel -> {
                         userModel.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
