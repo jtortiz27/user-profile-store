@@ -10,5 +10,6 @@ spring:
     ignored: /**
   jackson:
     default-property-inclusion: NON_NULL
-  main:
-    allow-bean-definition-overriding: true
+server:
+  compression:
+    enabled: true

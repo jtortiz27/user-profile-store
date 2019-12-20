@@ -18,6 +18,10 @@ public class TestDataLoader {
 
     @Bean
     CommandLineRunner createInitialUsers(CouchbaseOperations couchbaseOperations) {
-        return args -> couchbaseOperations.save(new UserModel("userName", "encodedPassword", "Jason", "Ortiz", Role.SUPER_ADMIN, new PointsOfContact()));
+        return args -> {
+            for (int i = 0; i < 1000; i++) {
+                couchbaseOperations.save(new UserModel("userName" + i, "encodedPassword", "Jason", "Ortiz", Role.SUPER_ADMIN, new PointsOfContact()));
+            }
+        };
     }
 }
