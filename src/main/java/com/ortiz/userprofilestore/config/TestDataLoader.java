@@ -3,12 +3,16 @@ package com.ortiz.userprofilestore.config;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
+import com.ortiz.userprofilestore.service.model.EmailAddress;
+import com.ortiz.userprofilestore.service.model.PhoneNumber;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.core.CouchbaseOperations;
+
+import java.text.DecimalFormat;
 
 @Configuration
 public class TestDataLoader {
@@ -19,8 +23,12 @@ public class TestDataLoader {
     @Bean
     CommandLineRunner createInitialUsers(CouchbaseOperations couchbaseOperations) {
         return args -> {
+            DecimalFormat format = new DecimalFormat("0000");
             for (int i = 0; i < 1000; i++) {
-                couchbaseOperations.save(new UserModel("userName" + i, "encodedPassword", "Jason", "Ortiz", Role.SUPER_ADMIN, new PointsOfContact()));
+                PointsOfContact pointsOfContact = new PointsOfContact();
+                pointsOfContact.getEmailAddresses().add(new EmailAddress("jason" + i + "@google.com", "google"));
+                pointsOfContact.getPhoneNumbers().add(new PhoneNumber("1", "973744" + format.format(i)));
+                couchbaseOperations.save(new UserModel("userName" + i, "encodedPassword", "Jason", "Ortiz", Role.SUPER_ADMIN, pointsOfContact));
             }
         };
     }

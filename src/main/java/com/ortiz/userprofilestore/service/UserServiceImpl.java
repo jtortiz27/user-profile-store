@@ -83,7 +83,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact) {
-
         return Mono.just(userName)
                 .flatMap(user -> {
                     userRepository.existsById(user).switchIfEmpty(Mono.defer(() -> Mono.error(DocumentDoesNotExistException::new)));
@@ -129,7 +128,7 @@ public class UserServiceImpl implements UserService {
                         log.info(emailAddress);
                         return Boolean.TRUE;
                     } else {
-                        log.info("Attempted to update add emailAddress {} failed because there is already a user with this email address: {}", emailAddress, userModel.toString());
+                        log.info("Attempted to update emailAddress {} failed because there is already a user with this email address: {}", emailAddress, userModel.toString());
                         return Boolean.FALSE;
                     }
                 });
@@ -141,6 +140,7 @@ public class UserServiceImpl implements UserService {
                     if (userModel == null) {
                         return Boolean.TRUE;
                     } else {
+                        log.info("Attempted to update phoneNumber {} failed because there is already a user with this phone number: {}", phoneNumber, userModel.toString());
                         return Boolean.FALSE;
                     }
                 });

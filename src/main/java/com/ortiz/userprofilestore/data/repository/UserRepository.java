@@ -12,6 +12,6 @@ public interface UserRepository extends ReactiveCouchbaseSortingRepository<UserM
     @Query("#{#n1ql.selectEntity} WHERE docType = 'user' AND ANY e IN pointsOfContact.emailAddresses SATISFIES e.email = $1 AND e.provider = $2 END")
     Mono<UserModel> findUserModelByEmailAddress(String emailAddress, String provider);
 
-    @Query("SELECT * FROM users WHERE docType = 'user' AND ANY number IN pointsOfContact.phoneNumbers.number SATISFIES $1 end")
+    @Query("#{#n1ql.selectEntity} WHERE docType = 'user' AND ANY p IN pointsOfContact.phoneNumbers SATISFIES `p`.`number` = $1 end")
     Mono<UserModel> findUserModelByPhoneNumber(String phoneNumber);
 }
