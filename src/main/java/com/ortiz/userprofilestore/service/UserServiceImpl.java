@@ -66,9 +66,7 @@ public class UserServiceImpl implements UserService {
                                 .all(Boolean::booleanValue);
 
                         //Wait for both to finish
-                        return Mono.zip(usersExistWithEmail, usersExistWithPhoneNumber, (T1, T2) -> {
-                            return T1 && T2;
-                        });
+                        return Mono.zip(usersExistWithEmail, usersExistWithPhoneNumber, (T1, T2) -> T1 && T2);
                     }).block();
                 })))
                 .flatMap(userExists -> {
