@@ -12,7 +12,6 @@ spring:
     default-property-inclusion: NON_NULL
   main:
     web-application-type: reactive
-    allow-bean-definition-overriding: true
 server:
   compression:
     enabled: true
