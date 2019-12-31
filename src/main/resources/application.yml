@@ -15,3 +15,7 @@ spring:
 server:
   compression:
     enabled: true
+
+logging:
+  level:
+    org.springframework.data.couchbase.repository.query: DEBUG
