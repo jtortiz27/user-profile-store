@@ -22,6 +22,7 @@ public class UserResource {
     private PointsOfContact pointsOfContact;
 
     public UserResource(User user) {
+        this.userName = user.getUserName();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.roles = user.getRoles();

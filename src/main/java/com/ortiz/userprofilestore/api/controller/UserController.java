@@ -43,21 +43,19 @@ public class UserController {
     }
 
     @PostMapping
-    public Mono<UserResource> createUser(@RequestBody UserResource userResource) {
-        return Mono.just(userResource)
-                .flatMap(user -> {
-                    if (!isUserResourceWithAllRequiredFields(userResource)) {
-                        return Mono.error(new IllegalArgumentException("Must supply all required fields"));
-                    }
-
-                    return userService.createUser(userResource.getUserName(), userResource.getPassword(), userResource.getFirstName(), userResource.getLastName(), userResource.getRoles().get(0), userResource.getPointsOfContact())
-                            .map(UserResource::new);
-                });
+    public Flux<UserResource> createUser(@RequestBody Flux<UserResource> userResources) {
+        return userResources.flatMap(user -> {
+            if (!isUserResourceWithAllRequiredFields(user)) {
+                return Mono.error(new IllegalArgumentException("Must supply all required fields"));
+            }
+            return userService.createUser(user.getUserName(), user.getPassword(), user.getFirstName(), user.getLastName(), user.getRoles().get(0), user.getPointsOfContact());
+        })
+                .map(UserResource::new);
     }
 
     @PatchMapping(value = "/{userName}")
-    public Mono<UserResource> updateUser(@PathVariable("userName") String userName, @RequestBody UserResource userResource) {
-        return userService.updateUserPointsOfContact(userName, userResource.getPointsOfContact())
+    public Mono<UserResource> updateUser(@PathVariable("userName") String userName, @RequestBody Mono<UserResource> userResource) {
+        return userResource.flatMap(user -> userService.updateUserPointsOfContact(userName, user.getPointsOfContact()))
                 .map(UserResource::new);
     }
 

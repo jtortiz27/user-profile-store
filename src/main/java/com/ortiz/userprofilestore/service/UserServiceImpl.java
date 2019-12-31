@@ -1,6 +1,5 @@
 package com.ortiz.userprofilestore.service;
 
-import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,33 +42,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<User> createUser(String userName, String password, String firstName, String lastName, Role role, PointsOfContact pointsOfContact) {
         return Mono.just(userName)
-                .flatMap(user -> userRepository.existsById(user).switchIfEmpty(Mono.defer(() -> {
-
+                .flatMap(user -> userRepository.existsById(user))
+                .flatMap(exists -> {
+                    if (exists) {
+                        return Mono.just(Boolean.FALSE);
+                    }
                     //Collect Email Addresses
-                    Mono<Set<EmailAddress>> emailAddressMono = Mono.just(new HashSet<>(pointsOfContact.getEmailAddresses()));
+                    Set<EmailAddress> emailAddresses = pointsOfContact.getEmailAddresses();
 
                     //Collect Phone Numbers
-                    Mono<Set<String>> phoneNumberMono = Mono.just(pointsOfContact.getPhoneNumbers().stream()
+                    Set<String> phoneNumbers = pointsOfContact.getPhoneNumbers().stream()
                             .map(PhoneNumber::getNumber)
-                            .collect(Collectors.toSet()));
+                            .collect(Collectors.toSet());
 
                     //Validate all emails and phone numbers provided are unique
-                    return Mono.zip(emailAddressMono, phoneNumberMono, (emailAddresses, phoneNumbers) -> {
+                    Mono<Boolean> usersExistWithEmail = Flux.fromIterable(emailAddresses)
+                            .flatMap(email -> isUniqueEmailAddress(email.getEmail(), email.getProvider()))
+                            .all(unique -> unique.equals(Boolean.TRUE));
 
-                        Mono<Boolean> usersExistWithEmail = Flux.fromIterable(emailAddresses)
-                                .flatMap(email -> isUniqueEmailAddress(email.getEmail(), email.getProvider()))
-                                .all(Boolean::booleanValue);
+                    Mono<Boolean> usersExistWithPhoneNumber = Flux.fromIterable(phoneNumbers)
+                            .flatMap(this::isUniquePhoneNumber)
+                            .all(unique -> unique.equals(Boolean.TRUE));
 
-                        Mono<Boolean> usersExistWithPhoneNumber = Flux.fromIterable(phoneNumbers)
-                                .flatMap(this::isUniquePhoneNumber)
-                                .all(Boolean::booleanValue);
-
-                        //Wait for both to finish
-                        return Mono.zip(usersExistWithEmail, usersExistWithPhoneNumber, (T1, T2) -> T1 && T2);
-                    }).block();
-                })))
-                .flatMap(userExists -> {
-                    if (userExists != null && userExists) {
+                    //Wait for both to finish
+                    return Mono.zip(usersExistWithEmail, usersExistWithPhoneNumber, (T1, T2) -> T1 && T2);
+                }).flatMap(valid -> {
+                    if (valid) {
                         return userRepository.save(new UserModel(userName, passwordEncoder.encode(password), firstName, lastName, role, pointsOfContact))
                                 .map(User::new);
                     } else {
@@ -82,41 +79,42 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact) {
         return Mono.just(userName)
+                .flatMap(u -> userRepository.findById(u))
                 .flatMap(user -> {
-                    userRepository.existsById(user).switchIfEmpty(Mono.defer(() -> Mono.error(DocumentDoesNotExistException::new)));
+                    if (user == null) {
+                        return Mono.error(new IllegalArgumentException("The user " + userName + " does not exist"));
+                    }
 
                     //Collect Email Addresses
-                    Mono<Set<EmailAddress>> emailAddressMono = Mono.just(new HashSet<>(pointsOfContact.getEmailAddresses()));
+                    Set<EmailAddress> emailAddresses = pointsOfContact.getEmailAddresses();
 
                     //Collect Phone Numbers
-                    Mono<Set<String>> phoneNumberMono = Mono.just(pointsOfContact.getPhoneNumbers().stream().map(PhoneNumber::getNumber).collect(Collectors.toSet()));
+                    Set<String> phoneNumbers = pointsOfContact.getPhoneNumbers().stream()
+                            .map(PhoneNumber::getNumber)
+                            .collect(Collectors.toSet());
 
                     //Validate all emails and phone numbers provided are unique
-                    Boolean valid = Mono.zip(emailAddressMono, phoneNumberMono, (emailAddresses, phoneNumbers) -> {
-                        Mono<Boolean> usersExistWithEmail = Flux.fromIterable(emailAddresses)
-                                .flatMap(email -> isUniqueEmailAddress(email.getEmail(), email.getProvider()))
-                                .all(Boolean::booleanValue);
-                        Mono<Boolean> usersExistWithPhoneNumber = Flux.fromIterable(phoneNumbers)
-                                .flatMap(this::isUniquePhoneNumber)
-                                .all(Boolean::booleanValue);
+                    Mono<Boolean> allUniqueEmails = Flux.fromIterable(emailAddresses)
+                            .flatMap(email -> isUniqueEmailAddress(email.getEmail(), email.getProvider()))
+                            .all(unique -> unique.equals(Boolean.TRUE));
+                    Mono<Boolean> allUniquePhoneNumbers = Flux.fromIterable(phoneNumbers)
+                            .flatMap(this::isUniquePhoneNumber)
+                            .all(unique -> unique.equals(Boolean.TRUE));
 
-                        //Wait for both to finish
-                        return usersExistWithEmail.zipWith(usersExistWithPhoneNumber, (T1, T2) -> T1 && T2).block();
-                    }).block();
-                    if (valid != null && valid) {
-                        return userRepository.findById(userName)
-                                .map(userModel -> {
-                                    userModel.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
-                                    userModel.getPointsOfContact().getPhoneNumbers().addAll(pointsOfContact.getPhoneNumbers());
-                                    userModel.getPointsOfContact().getPhysicalAddresses().addAll(pointsOfContact.getPhysicalAddresses());
-                                    return userRepository.save(userModel)
-                                            .switchIfEmpty(Mono.error(DocumentDoesNotExistException::new))
-                                            .block();
-                                })
-                                .map(User::new);
-                    }
-                    return Mono.error(new IllegalArgumentException("Please enter unique email addresses and phone numbers"));
-                });
+                    //Wait for both to finish
+                    return Mono.zip(allUniqueEmails, allUniquePhoneNumbers, (T1, T2) -> T1 && T2)
+                            .flatMap(valid -> {
+                                if (valid) {
+                                    user.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
+                                    user.getPointsOfContact().getPhoneNumbers().addAll(pointsOfContact.getPhoneNumbers());
+                                    user.getPointsOfContact().getPhysicalAddresses().addAll(pointsOfContact.getPhysicalAddresses());
+                                    return userRepository.save(user);
+
+                                }
+                                return Mono.error(new IllegalArgumentException("Unable to update user \"" + userName + "\": please provide unique emails and phone numbers"));
+                            });
+                })
+                .map(User::new);
     }
 
     private Mono<Boolean> isUniqueEmailAddress(String emailAddress, String provider) {
