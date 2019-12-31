@@ -49,8 +49,7 @@ public class UserController {
                 return Mono.error(new IllegalArgumentException("Must supply all required fields"));
             }
             return userService.createUser(user.getUserName(), user.getPassword(), user.getFirstName(), user.getLastName(), user.getRoles().get(0), user.getPointsOfContact());
-        })
-                .map(UserResource::new);
+        }).map(UserResource::new);
     }
 
     @PatchMapping(value = "/{userName}")
