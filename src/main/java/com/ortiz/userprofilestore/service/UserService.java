@@ -16,4 +16,6 @@ public interface UserService {
 
     Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact);
 
+    Mono<Void> deleteUser(String userName);
+
 }

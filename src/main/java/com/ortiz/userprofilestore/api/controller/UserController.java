@@ -4,7 +4,9 @@ import com.ortiz.userprofilestore.api.model.UserResource;
 import com.ortiz.userprofilestore.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +60,12 @@ public class UserController {
                 .map(UserResource::new);
     }
 
+    @DeleteMapping(value = "/{userName}")
+    public Mono<ResponseEntity<?>> deleteUser(@PathVariable("userName") String userName) {
+        return userService.deleteUser(userName)
+                .then(Mono.just(new ResponseEntity<>(HttpStatus.NO_CONTENT)));
+    }
+
     private static boolean isUserResourceWithAllRequiredFields(UserResource userResource) {
         return !StringUtils.isEmpty(userResource.getUserName())
                 && !StringUtils.isEmpty(userResource.getPassword())
@@ -65,6 +73,5 @@ public class UserController {
                 && !StringUtils.isEmpty(userResource.getLastName())
                 && !CollectionUtils.isEmpty(userResource.getRoles())
                 && !CollectionUtils.isEmpty(userResource.getPointsOfContact().getEmailAddresses());
-
     }
 }

@@ -1,5 +1,6 @@
 package com.ortiz.userprofilestore.service;
 
+import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
@@ -45,7 +46,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(user -> userRepository.existsById(user))
                 .flatMap(exists -> {
                     if (exists) {
-                        return Mono.just(Boolean.FALSE);
+                        return Mono.error(new IllegalArgumentException("The user " + userName + " already exists"));
                     }
                     //Collect Email Addresses
                     Set<EmailAddress> emailAddresses = pointsOfContact.getEmailAddresses();
@@ -71,7 +72,7 @@ public class UserServiceImpl implements UserService {
                         return userRepository.save(new UserModel(userName, passwordEncoder.encode(password), firstName, lastName, role, pointsOfContact))
                                 .map(User::new);
                     } else {
-                        return Mono.error(new IllegalArgumentException("The user already exists"));
+                        return Mono.error(new IllegalArgumentException("Please provide valid Email Addresses and Phone Numbers"));
                     }
                 });
     }
@@ -115,6 +116,18 @@ public class UserServiceImpl implements UserService {
                             });
                 })
                 .map(User::new);
+    }
+
+    @Override
+    public Mono<Void> deleteUser(String userName) {
+        return Mono.just(userName)
+                .flatMap(user -> {
+                    try {
+                        return userRepository.deleteById(user);
+                    } catch (DocumentDoesNotExistException e) {
+                        return Mono.error(new IllegalArgumentException("Cannot delete user " + user + ". User does not exist"));
+                    }
+                });
     }
 
     private Mono<Boolean> isUniqueEmailAddress(String emailAddress, String provider) {
