@@ -1,10 +1,13 @@
 package com.ortiz.userprofilestore.service;
 
 import com.ortiz.userprofilestore.data.model.Role;
+import com.ortiz.userprofilestore.service.model.Permission;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
 import com.ortiz.userprofilestore.service.model.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public interface UserService {
 
@@ -18,4 +21,5 @@ public interface UserService {
 
     Mono<Void> deleteUser(String userName);
 
+    Mono<List<Permission>> retrievePermissionsByUser(String userName);
 }

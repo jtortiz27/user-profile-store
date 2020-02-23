@@ -4,10 +4,7 @@ import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
-import com.ortiz.userprofilestore.service.model.EmailAddress;
-import com.ortiz.userprofilestore.service.model.PhoneNumber;
-import com.ortiz.userprofilestore.service.model.PointsOfContact;
-import com.ortiz.userprofilestore.service.model.User;
+import com.ortiz.userprofilestore.service.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +12,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -130,6 +129,15 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
+    @Override
+    public Mono<List<Permission>> retrievePermissionsByUser(String userName) {
+        return Mono.just(userName)
+                .flatMap(user -> userRepository.findById(userName)
+                        .map(UserModel::getRoles)
+                        .map(this::retrievePermissionsForRoles));
+
+    }
+
     private Mono<Boolean> isUniqueEmailAddress(String emailAddress, String provider) {
         return userRepository.findUserModelByEmailAddress(emailAddress, provider)
                 .map(userModel -> {
@@ -153,5 +161,9 @@ public class UserServiceImpl implements UserService {
                         return Boolean.FALSE;
                     }
                 });
+    }
+
+    private List<Permission> retrievePermissionsForRoles(List<Role> roles) {
+        return new ArrayList<>();
     }
 }

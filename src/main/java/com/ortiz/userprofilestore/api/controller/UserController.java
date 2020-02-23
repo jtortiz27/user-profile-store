@@ -66,6 +66,32 @@ public class UserController {
                 .then(Mono.just(new ResponseEntity<>(HttpStatus.NO_CONTENT)));
     }
 
+    @GetMapping(value = "/{userName}/roles")
+    public Mono<UserResource> retrieveRolesForUser(@PathVariable("userName") String userName) {
+        return userService.retrieveUserByUserName(userName)
+                .map(user -> {
+                    UserResource userResource = new UserResource();
+                    userResource.setFirstName(user.getFirstName());
+                    userResource.setLastName(user.getLastName());
+                    userResource.setRoles(user.getRoles());
+                    userResource.setId(user.getId());
+                    return userResource;
+                });
+    }
+
+
+    @GetMapping(value = "/{userName}/permissions")
+    public Mono<UserResource> retrievePermissionsForUser(@PathVariable("userName") String userName) {
+        return userService.retrievePermissionsByUser(userName)
+                .map(permissions -> {
+                    UserResource userResource = new UserResource();
+                    userResource.setPermissions(permissions);
+                    return userResource;
+                });
+
+    }
+
+
     private static boolean isUserResourceWithAllRequiredFields(UserResource userResource) {
         return !StringUtils.isEmpty(userResource.getUserName())
                 && !StringUtils.isEmpty(userResource.getPassword())
