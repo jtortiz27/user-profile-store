@@ -2,5 +2,6 @@ package com.ortiz.userprofilestore.service.model;
 
 public enum Permission {
     READ,
-    WRITE
+    WRITE,
+    DELETE
 }

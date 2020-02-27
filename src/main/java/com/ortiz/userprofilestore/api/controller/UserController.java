@@ -50,13 +50,13 @@ public class UserController {
             if (!isUserResourceWithAllRequiredFields(user)) {
                 return Mono.error(new IllegalArgumentException("Must supply all required fields"));
             }
-            return userService.createUser(user.getUserName(), user.getPassword(), user.getFirstName(), user.getLastName(), user.getRoles().get(0), user.getPointsOfContact());
+            return userService.createUser(user.getUserName(), user.getPassword(), user.getFirstName(), user.getLastName(), user.getRoles(), user.getPointsOfContact());
         }).map(UserResource::new);
     }
 
     @PatchMapping(value = "/{userName}")
     public Mono<UserResource> updateUser(@PathVariable("userName") String userName, @RequestBody Mono<UserResource> userResource) {
-        return userResource.flatMap(user -> userService.updateUserPointsOfContact(userName, user.getPointsOfContact()))
+        return userResource.flatMap(user -> userService.updateUser(userName, user.getPointsOfContact(), user.getRoles(), user.getPermissions(), user.getFollows()))
                 .map(UserResource::new);
     }
 

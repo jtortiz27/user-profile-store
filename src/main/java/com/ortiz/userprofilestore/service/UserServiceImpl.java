@@ -1,6 +1,7 @@
 package com.ortiz.userprofilestore.service;
 
 import com.couchbase.client.java.error.DocumentDoesNotExistException;
+import com.ortiz.userprofilestore.data.model.Follow;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
@@ -12,8 +13,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> createUser(String userName, String password, String firstName, String lastName, Role role, PointsOfContact pointsOfContact) {
+    public Mono<User> createUser(String userName, String password, String firstName, String lastName, Set<Role> role, PointsOfContact pointsOfContact) {
         return Mono.just(userName)
                 .flatMap(user -> userRepository.existsById(user))
                 .flatMap(exists -> {
@@ -77,14 +77,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> updateUserPointsOfContact(String userName, PointsOfContact pointsOfContact) {
+    public Mono<User> updateUser(String userName, PointsOfContact pointsOfContact, Set<Role> roles, Set<Permission> permissions, Set<Follow> follow) {
         return Mono.just(userName)
                 .flatMap(u -> userRepository.findById(u))
-                .flatMap(user -> {
-                    if (user == null) {
-                        return Mono.error(new IllegalArgumentException("The user " + userName + " does not exist"));
+                .flatMap(userModel -> {
+
+                    //If user doesnt exist, throw error
+                    if (userModel == null) {
+                        return Mono.error(new IllegalArgumentException("User does not exist"));
                     }
 
+                    //Update User Points of contact
+                    Mono<Void> userPointsOfContactMono = updateUserPointsOfContact(userModel, pointsOfContact);
+
+                    //Update Follows
+                    Mono<Void> userFollowsMono = updateUserFollows(userModel, follow);
+
+                    //Add additional Monos for updating profile
+                    return Mono.when(userPointsOfContactMono, userFollowsMono)
+                            .then(userRepository.save(userModel));
+                })
+                .map(User::new);
+    }
+
+    private Mono<Void> updateUserFollows(UserModel userModel, Set<Follow> follow) {
+        userModel.getFollowing().addAll(follow);
+        return Mono.empty();
+    }
+
+    public Mono<Void> updateUserPointsOfContact(UserModel userModel, PointsOfContact pointsOfContact) {
+        return Mono.just(userModel)
+                .flatMap(user -> {
                     //Collect Email Addresses
                     Set<EmailAddress> emailAddresses = pointsOfContact.getEmailAddresses();
 
@@ -108,13 +131,10 @@ public class UserServiceImpl implements UserService {
                                     user.getPointsOfContact().getEmailAddresses().addAll(pointsOfContact.getEmailAddresses());
                                     user.getPointsOfContact().getPhoneNumbers().addAll(pointsOfContact.getPhoneNumbers());
                                     user.getPointsOfContact().getPhysicalAddresses().addAll(pointsOfContact.getPhysicalAddresses());
-                                    return userRepository.save(user);
-
                                 }
-                                return Mono.error(new IllegalArgumentException("Unable to update user \"" + userName + "\": please provide unique emails and phone numbers"));
+                                return Mono.error(new IllegalArgumentException("Unable to update user \"" + user.getUserName() + "\": please provide unique emails and phone numbers"));
                             });
-                })
-                .map(User::new);
+                });
     }
 
     @Override
@@ -130,7 +150,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<List<Permission>> retrievePermissionsByUser(String userName) {
+    public Mono<Set<Permission>> retrievePermissionsByUser(String userName) {
         return Mono.just(userName)
                 .flatMap(user -> userRepository.findById(userName)
                         .map(UserModel::getRoles)
@@ -163,7 +183,8 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-    private List<Permission> retrievePermissionsForRoles(List<Role> roles) {
-        return new ArrayList<>();
+    //TODO: implement method
+    private Set<Permission> retrievePermissionsForRoles(Set<Role> roles) {
+        return new HashSet<>();
     }
 }

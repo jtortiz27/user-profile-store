@@ -1,12 +1,13 @@
 package com.ortiz.userprofilestore.service.model;
 
+import com.ortiz.userprofilestore.data.model.Follow;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -16,9 +17,10 @@ public class User {
     private String userName;
     private String firstName;
     private String lastName;
-    private List<Role> roles;
-    private List<Permission> permissions;
+    private Set<Role> roles;
+    private Set<Permission> permissions;
     private PointsOfContact pointsOfContact;
+    private Set<Follow> follows;
 
     public User(UserModel userModel) {
         this.id = userModel.getId();
@@ -27,5 +29,6 @@ public class User {
         this.lastName = userModel.getLastName();
         this.roles = userModel.getRoles();
         this.pointsOfContact = userModel.getPointsOfContact();
+        this.follows = userModel.getFollowing();
     }
 }

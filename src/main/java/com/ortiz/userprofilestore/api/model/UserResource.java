@@ -1,5 +1,6 @@
 package com.ortiz.userprofilestore.api.model;
 
+import com.ortiz.userprofilestore.data.model.Follow;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.service.model.Permission;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
@@ -8,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -19,9 +20,10 @@ public class UserResource {
     private String password;
     private String firstName;
     private String lastName;
-    private List<Role> roles;
-    private List<Permission> permissions;
+    private Set<Role> roles;
+    private Set<Permission> permissions;
     private PointsOfContact pointsOfContact;
+    private Set<Follow> follows;
 
     public UserResource(User user) {
         this.userName = user.getUserName();
@@ -30,5 +32,6 @@ public class UserResource {
         this.roles = user.getRoles();
         this.permissions = user.getPermissions();
         this.pointsOfContact = user.getPointsOfContact();
+        this.follows = user.getFollows();
     }
 }

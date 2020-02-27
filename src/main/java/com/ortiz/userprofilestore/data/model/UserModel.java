@@ -8,9 +8,10 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.couchbase.core.mapping.Document;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Document
@@ -26,8 +27,10 @@ public class UserModel {
     private String docType;
     private String firstName;
     private String lastName;
-    private List<Role> roles = new ArrayList<>();
+    private LocalDate joinDate;
+    private Set<Role> roles = new HashSet<>();
     private PointsOfContact pointsOfContact;
+    private Set<Follow> following = new HashSet<>();
 
     public UserModel(String userName, String encodedPassword, String firstName, String lastName) {
         this.id = UUID.randomUUID().toString();
@@ -39,7 +42,7 @@ public class UserModel {
         this.pointsOfContact = new PointsOfContact();
     }
 
-    public UserModel(String userName, String encodedPassword, String firstName, String lastName, List<Role> roles, PointsOfContact pointsOfContact) {
+    public UserModel(String userName, String encodedPassword, String firstName, String lastName, Set<Role> roles, PointsOfContact pointsOfContact) {
         this.id = UUID.randomUUID().toString();
         this.userName = userName;
         this.password = encodedPassword;
@@ -61,8 +64,8 @@ public class UserModel {
         this.pointsOfContact = pointsOfContact;
     }
 
-    private static List<Role> getDefaultRoles() {
-        return Arrays.asList(Role.MEMBER);
+    private static Set<Role> getDefaultRoles() {
+        return Collections.singleton(Role.MEMBER);
     }
 
 }
