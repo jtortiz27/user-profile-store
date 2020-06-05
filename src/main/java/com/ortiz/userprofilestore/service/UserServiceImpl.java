@@ -5,8 +5,10 @@ import com.ortiz.userprofilestore.data.model.Follow;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
 import com.ortiz.userprofilestore.data.repository.UserRepository;
+import com.ortiz.userprofilestore.event.message.UserCreatedMessage;
 import com.ortiz.userprofilestore.service.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public Flux<User> retrieveAllUsers() {
@@ -69,7 +74,10 @@ public class UserServiceImpl implements UserService {
                 }).flatMap(valid -> {
                     if (valid) {
                         return userRepository.save(new UserModel(userName, passwordEncoder.encode(password), firstName, lastName, role, pointsOfContact))
-                                .map(User::new);
+                                .map(user -> {
+                                    rabbitTemplate.convertAndSend(new UserCreatedMessage(user.getId(), userName));
+                                    return new User(user);
+                                });
                     } else {
                         return Mono.error(new IllegalArgumentException("Please provide valid Email Addresses and Phone Numbers"));
                     }
