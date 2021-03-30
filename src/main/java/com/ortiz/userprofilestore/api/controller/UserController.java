@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.logging.Level;
-
 
 @Slf4j
 @RestController
@@ -30,7 +30,7 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
-        this.allUsersFlux = userService.retrieveAllUsers().log(null, Level.INFO, SignalType.ON_NEXT).map(UserResource::new).cache(Duration.ofMinutes(1));
+        this.allUsersFlux = userService.retrieveAllUsers().log(null, Level.INFO, SignalType.ON_NEXT).subscribeOn(Schedulers.elastic()).map(UserResource::new).cache(Duration.ofMinutes(1));
     }
 
     @GetMapping
@@ -79,7 +79,6 @@ public class UserController {
                 });
     }
 
-
     @GetMapping(value = "/{userName}/permissions")
     public Mono<UserResource> retrievePermissionsForUser(@PathVariable("userName") String userName) {
         return userService.retrievePermissionsByUser(userName)
@@ -90,7 +89,6 @@ public class UserController {
                 });
 
     }
-
 
     private static boolean isUserResourceWithAllRequiredFields(UserResource userResource) {
         return !StringUtils.isEmpty(userResource.getUserName())

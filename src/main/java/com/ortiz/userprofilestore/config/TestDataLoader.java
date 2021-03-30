@@ -31,7 +31,7 @@ public class TestDataLoader {
             for (int i = 0; i < 1000; i++) {
                 PointsOfContact pointsOfContact = new PointsOfContact();
                 pointsOfContact.getEmailAddresses().add(new EmailAddress("jason" + i + "@google.com", "google"));
-                pointsOfContact.getPhoneNumbers().add(new PhoneNumber("1", "973744" + format.format(i)));
+                pointsOfContact.getPhoneNumbers().add(new PhoneNumber("1", "9733379326" + format.format(i)));
                 couchbaseOperations.save(new UserModel("userName" + i, passwordEncoder.encode("encodedPassword"), "Jason", "Ortiz", Role.SUPER_ADMIN, pointsOfContact));
             }
         };
