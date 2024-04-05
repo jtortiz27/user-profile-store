@@ -1,6 +1,6 @@
 package com.ortiz.userprofilestore.service;
 
-import com.couchbase.client.java.error.DocumentDoesNotExistException;
+import com.couchbase.client.core.error.DocumentNotFoundException;
 import com.ortiz.userprofilestore.data.model.Follow;
 import com.ortiz.userprofilestore.data.model.Role;
 import com.ortiz.userprofilestore.data.model.UserModel;
@@ -151,7 +151,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(user -> {
                     try {
                         return userRepository.deleteById(user);
-                    } catch (DocumentDoesNotExistException e) {
+                    } catch (DocumentNotFoundException e) {
                         return Mono.error(new IllegalArgumentException("Cannot delete user " + user + ". User does not exist"));
                     }
                 });

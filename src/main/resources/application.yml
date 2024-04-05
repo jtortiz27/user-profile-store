@@ -1,9 +1,11 @@
 spring:
   couchbase:
-    bootstrap-hosts: http://localhost
     bucket:
       name: users
       password: password
+    connection-string: couchbase://localhost
+    username: admin
+    password: password
   security:
     basic:
       enable: false

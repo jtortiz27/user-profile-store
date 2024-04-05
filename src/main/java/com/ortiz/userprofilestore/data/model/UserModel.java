@@ -1,12 +1,12 @@
 package com.ortiz.userprofilestore.data.model;
 
-import com.couchbase.client.java.repository.annotation.Field;
 import com.ortiz.userprofilestore.service.model.PointsOfContact;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.couchbase.core.mapping.Document;
+import org.springframework.data.couchbase.core.mapping.Field;
 
 import java.time.LocalDate;
 import java.util.Collections;
